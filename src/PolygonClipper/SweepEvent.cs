@@ -108,13 +108,8 @@ internal sealed class SweepEvent
     public bool OtherInOut { get; set; }
 
     /// <summary>
-    /// Gets or sets this event's handle into the status line. Only used in "left" events.
-    /// <para>
-    /// The handle identifies the event's node in <see cref="StatusLine"/> and stays valid for as
-    /// long as the event is in the status line, however many other events are inserted or removed
-    /// around it. It is the counterpart of the <c>std::set</c> iterator the original C++
-    /// implementation keeps in its own <c>posSL</c>.
-    /// </para>
+    /// Gets or sets the sorted sweep events. Only used in "left" events.
+    /// Position of the event (segment) in SL (status line).
     /// </summary>
     public int PosSL { get; set; }
 
