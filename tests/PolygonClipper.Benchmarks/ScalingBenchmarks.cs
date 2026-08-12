@@ -18,6 +18,8 @@ public class ScalingBenchmarks
     private Polygon circleClipping = null!;
     private Polygon gridSubject = null!;
     private Polygon gridClipping = null!;
+    private Polygon barsSubject = null!;
+    private Polygon barsClipping = null!;
 
     /// <summary>
     /// Gets or sets the approximate combined vertex count of the two input polygons.
@@ -31,6 +33,7 @@ public class ScalingBenchmarks
         (this.combSubject, this.combClipping) = SyntheticPolygons.InterlockingCombs(this.VertexCount);
         (this.circleSubject, this.circleClipping) = SyntheticPolygons.OverlappingCircles(this.VertexCount);
         (this.gridSubject, this.gridClipping) = SyntheticPolygons.SharedEdgeGrid(this.VertexCount);
+        (this.barsSubject, this.barsClipping) = SyntheticPolygons.StackedBars(this.VertexCount);
     }
 
     /// <summary>
@@ -57,6 +60,15 @@ public class ScalingBenchmarks
     [Benchmark]
     public Polygon SharedEdgeGrid()
         => global::PolygonClipper.PolygonClipper.Union(this.gridSubject, this.gridClipping);
+
+    /// <summary>
+    /// The only family here whose status line grows with the input: every bar edge spans every
+    /// sweep position, so the status line holds roughly 2n entries at once instead of a handful.
+    /// </summary>
+    /// <returns>The union of the bar stack and its clipping rectangle.</returns>
+    [Benchmark]
+    public Polygon StackedBars()
+        => global::PolygonClipper.PolygonClipper.Union(this.barsSubject, this.barsClipping);
 }
 
 /// <summary>

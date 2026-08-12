@@ -78,6 +78,52 @@ internal static class SyntheticPolygons
     }
 
     /// <summary>
+    /// A stack of long thin bars, each spanning the full width, clipped by a rectangle over the
+    /// left half. Every bar edge crosses every sweep position, so the status line holds roughly
+    /// 2n entries at once - it grows with the input instead of staying constant like the other
+    /// three families. This is the only shape here that exercises the status line's insert and
+    /// remove cost.
+    /// </summary>
+    /// <param name="vertexCount">The approximate combined vertex count of both polygons.</param>
+    /// <returns>The subject and clipping polygons.</returns>
+    public static (Polygon Subject, Polygon Clipping) StackedBars(int vertexCount)
+    {
+        // A closed bar costs five vertices; the clipping rectangle costs five more.
+        int bars = Math.Max(1, (vertexCount - 5) / 5);
+        const double width = 1000D;
+        const double pitch = 4D;
+        const double thickness = pitch * 0.5D;
+
+        // A slight rise keeps the long edges off exact horizontal, which is a degenerate case
+        // for a sweep line. All bars share the slope, so they stay parallel and never touch.
+        const double rise = pitch * 0.25D;
+
+        Polygon subject = new();
+        for (int i = 0; i < bars; i++)
+        {
+            double y = i * pitch;
+
+            Contour contour = new();
+            contour.AddVertex(new Vertex(0D, y));
+            contour.AddVertex(new Vertex(width, y + rise));
+            contour.AddVertex(new Vertex(width, y + rise + thickness));
+            contour.AddVertex(new Vertex(0D, y + thickness));
+
+            subject.Push(CloseRing(contour));
+        }
+
+        // Covers the left half horizontally and the whole stack vertically, so every bar is cut
+        // exactly once - the intersection count stays linear while the status line grows.
+        Contour clip = new();
+        clip.AddVertex(new Vertex(0D, -pitch));
+        clip.AddVertex(new Vertex(width * 0.5D, -pitch));
+        clip.AddVertex(new Vertex(width * 0.5D, (bars * pitch) + pitch));
+        clip.AddVertex(new Vertex(0D, (bars * pitch) + pitch));
+
+        return (subject, Close(clip));
+    }
+
+    /// <summary>
     /// Builds the lower comb, with teeth rising out of its body over the even x slots and up
     /// through the opposing comb's lower edge. Wound counter clockwise, matching the GeoJSON
     /// convention the fixtures follow.
