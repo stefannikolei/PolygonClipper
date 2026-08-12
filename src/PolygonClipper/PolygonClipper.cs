@@ -547,7 +547,7 @@ public class PolygonClipper
 
         // Ignore intersection if it occurs at the exact left or right endpoint of both segments
         if (nIntersections == 1 &&
-            (le1.Point == le2.Point || le1.OtherEvent.Point == le2.OtherEvent.Point))
+            (le1.Point == le2.Point || le1.OtherPoint == le2.OtherPoint))
         {
             // Line segments intersect at an endpoint of both line segments
             return 0;
@@ -564,13 +564,13 @@ public class PolygonClipper
         if (nIntersections == 1)
         {
             // If the intersection point is not an endpoint of le1 segment.
-            if (le1.Point != ip1 && le1.OtherEvent.Point != ip1)
+            if (le1.Point != ip1 && le1.OtherPoint != ip1)
             {
                 DivideSegment(le1, ip1, eventQueue, comparer);
             }
 
             // If the intersection point is not an endpoint of le2 segment.
-            if (le2.Point != ip1 && le2.OtherEvent.Point != ip1)
+            if (le2.Point != ip1 && le2.OtherPoint != ip1)
             {
                 DivideSegment(le2, ip1, eventQueue, comparer);
             }
@@ -580,7 +580,7 @@ public class PolygonClipper
 
         // The line segments associated with le1 and le2 overlap.
         bool leftCoincide = le1.Point == le2.Point;
-        bool rightCoincide = le1.OtherEvent.Point == le2.OtherEvent.Point;
+        bool rightCoincide = le1.OtherPoint == le2.OtherPoint;
 
         // Populate the events.
         // The working buffer has a length of 4, which is sufficient to hold the events

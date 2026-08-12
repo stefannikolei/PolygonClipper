@@ -12,6 +12,8 @@ namespace PolygonClipper;
 /// </summary>
 internal sealed class SweepEvent
 {
+    private SweepEvent otherEvent;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SweepEvent"/> class.
     /// </summary>
@@ -92,7 +94,33 @@ internal sealed class SweepEvent
     /// <summary>
     /// Gets or sets the event associated to the other endpoint of the segment.
     /// </summary>
-    public SweepEvent OtherEvent { get; set; }
+    public SweepEvent OtherEvent
+    {
+        get => this.otherEvent;
+
+        set
+        {
+            this.otherEvent = value;
+            this.OtherPoint = value is null ? default : value.Point;
+        }
+    }
+
+    /// <summary>
+    /// Gets the point of the other endpoint of the segment, mirrored from
+    /// <see cref="OtherEvent"/>.
+    /// </summary>
+    /// <remarks>
+    /// Both comparers need this point on every single comparison. Reading it from
+    /// <see cref="OtherEvent"/> means following a reference into a second heap object, which is
+    /// a likely cache miss because the heap and the status line visit events in an order
+    /// unrelated to how they were allocated. Mirroring it here keeps the comparison within one
+    /// object.
+    /// <para>
+    /// The mirror cannot drift: <see cref="Point"/> is immutable, and the only way to change
+    /// which event is on the other end is the <see cref="OtherEvent"/> setter above.
+    /// </para>
+    /// </remarks>
+    public Vertex OtherPoint { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the segment (p, other->p) represent an
@@ -154,8 +182,8 @@ internal sealed class SweepEvent
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Below(Vertex p)
         => this.Left
-        ? PolygonUtilities.SignedArea(this.Point, this.OtherEvent.Point, p) > 0D
-        : PolygonUtilities.SignedArea(this.OtherEvent.Point, this.Point, p) > 0D;
+        ? PolygonUtilities.SignedArea(this.Point, this.OtherPoint, p) > 0D
+        : PolygonUtilities.SignedArea(this.OtherPoint, this.Point, p) > 0D;
 
     /// <summary>
     /// Is the line segment (point, otherEvent->point) above point p.
@@ -174,7 +202,7 @@ internal sealed class SweepEvent
     /// <see langword="true"/> if the line segment is vertical; otherwise <see langword="false"/>.
     /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Vertical() => this.Point.X == this.OtherEvent.Point.X;
+    public bool Vertical() => this.Point.X == this.OtherPoint.X;
 
     /// <summary>
     /// Determines if this sweep event comes before another sweep event.
@@ -201,5 +229,5 @@ internal sealed class SweepEvent
     /// </summary>
     /// <returns>The <see cref="Segment"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Segment Segment() => new(this.Point, this.OtherEvent.Point);
+    public Segment Segment() => new(this.Point, this.OtherPoint);
 }

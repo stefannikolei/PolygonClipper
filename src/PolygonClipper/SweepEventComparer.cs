@@ -55,10 +55,10 @@ internal readonly struct SweepEventComparer : IComparer<SweepEvent>, IComparer
         }
 
         // Compare collinearity using signed area
-        double area = PolygonUtilities.SignedArea(x.Point, x.OtherEvent.Point, y.OtherEvent.Point);
+        double area = PolygonUtilities.SignedArea(x.Point, x.OtherPoint, y.OtherPoint);
         if (area != 0)
         {
-            return x.Below(y.OtherEvent.Point) ? -1 : 1;
+            return x.Below(y.OtherPoint) ? -1 : 1;
         }
 
         // Compare by polygon type: subject polygons have higher priority
