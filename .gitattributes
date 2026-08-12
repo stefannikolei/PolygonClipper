@@ -84,6 +84,7 @@
 #   treat as binary
 ###############################################################################
 *.basis             binary
+*.bin               binary
 *.dll               binary
 *.eot               binary
 *.exe               binary
