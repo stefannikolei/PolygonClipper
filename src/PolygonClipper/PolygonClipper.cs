@@ -767,19 +767,29 @@ public class PolygonClipper
             }
         }
 
-        // Due to overlapping edges, the resultEvents list may not be completely sorted
-        bool sorted = false;
-        while (!sorted)
+        // Due to overlapping edges, the resultEvents list may not be completely sorted.
+        //
+        // A stable insertion sort is used rather than List.Sort because the comparer is not
+        // guaranteed to be transitive across overlapping segments, and an introsort would be
+        // free to reorder equivalent elements. Insertion sort shares the two properties the
+        // bubble sort this replaces relied on - it is stable and it only ever reverses
+        // adjacent inversions - so it settles on the same ordering.
+        //
+        // It is also strictly cheaper. Bubble sort moves an element at most one position to
+        // the left per pass, so an element that belongs d positions earlier costs d full
+        // passes over the list. Insertion sort moves it there in d comparisons.
+        Span<SweepEvent> events = CollectionsMarshal.AsSpan(resultEvents);
+        for (int i = 1; i < events.Length; i++)
         {
-            sorted = true;
-            for (int i = 0; i < resultEvents.Count - 1; i++)
+            SweepEvent item = events[i];
+            int j = i - 1;
+            while (j >= 0 && comparer.Compare(events[j], item) > 0)
             {
-                if (comparer.Compare(resultEvents[i], resultEvents[i + 1]) > 0)
-                {
-                    (resultEvents[i], resultEvents[i + 1]) = (resultEvents[i + 1], resultEvents[i]);
-                    sorted = false;
-                }
+                events[j + 1] = events[j];
+                j--;
             }
+
+            events[j + 1] = item;
         }
 
         // Assign positions to events
