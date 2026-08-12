@@ -18,6 +18,18 @@ namespace PolygonClipper.Benchmarks;
 /// </summary>
 internal static class SyntheticPolygons
 {
+    // Comb geometry. The upward comb's body sits below the downward comb's body, and its teeth
+    // reach up through the downward comb's lower edge, which is where the edge crossings come
+    // from. The downward comb's teeth stop short of the upward comb's body, leaving an enclosed
+    // gap in every other slot - without that the two bodies would be bridged everywhere and the
+    // union would collapse to a plain rectangle.
+    private const double UpperBodyTop = 30D;
+    private const double UpperBodyBottom = 20D;
+    private const double DownwardToothTip = 14D;
+    private const double UpwardToothTip = 25D;
+    private const double LowerBodyTop = 10D;
+    private const double LowerBodyBottom = 0D;
+
     /// <summary>
     /// Two comb shaped polygons whose teeth mesh into one another. Every tooth crosses the
     /// opposing comb's body twice, so the number of edge intersections grows linearly with the
@@ -66,16 +78,17 @@ internal static class SyntheticPolygons
     }
 
     /// <summary>
-    /// Builds a comb whose body spans y 0..10 with teeth rising to y 25 over the even x slots.
-    /// Wound counter clockwise, matching the GeoJSON convention the fixtures follow.
+    /// Builds the lower comb, with teeth rising out of its body over the even x slots and up
+    /// through the opposing comb's lower edge. Wound counter clockwise, matching the GeoJSON
+    /// convention the fixtures follow.
     /// </summary>
     private static Polygon UpwardComb(int teeth, double step, double width)
     {
         Contour contour = new();
 
-        contour.AddVertex(new Vertex(0D, 0D));
-        contour.AddVertex(new Vertex(width, 0D));
-        contour.AddVertex(new Vertex(width, 10D));
+        contour.AddVertex(new Vertex(0D, LowerBodyBottom));
+        contour.AddVertex(new Vertex(width, LowerBodyBottom));
+        contour.AddVertex(new Vertex(width, LowerBodyTop));
 
         // Walk the toothed edge from right to left so the ring stays counter clockwise.
         for (int i = teeth - 1; i >= 0; i--)
@@ -83,25 +96,26 @@ internal static class SyntheticPolygons
             double left = 2D * i * step;
             double right = left + step;
 
-            contour.AddVertex(new Vertex(right, 10D));
-            contour.AddVertex(new Vertex(right, 25D));
-            contour.AddVertex(new Vertex(left, 25D));
-            contour.AddVertex(new Vertex(left, 10D));
+            contour.AddVertex(new Vertex(right, LowerBodyTop));
+            contour.AddVertex(new Vertex(right, UpwardToothTip));
+            contour.AddVertex(new Vertex(left, UpwardToothTip));
+            contour.AddVertex(new Vertex(left, LowerBodyTop));
         }
 
         return Close(contour);
     }
 
     /// <summary>
-    /// Builds a comb whose body spans y 20..30 with teeth dropping to y 5 over the odd x slots,
-    /// so the teeth interleave with those of <see cref="UpwardComb"/> without touching them.
+    /// Builds the upper comb, with teeth hanging into the odd x slots so they interleave with
+    /// those of <see cref="UpwardComb"/> without touching them. The teeth stop above the lower
+    /// comb's body, so each odd slot encloses a gap that survives into the union.
     /// </summary>
     private static Polygon DownwardComb(int teeth, double step, double width)
     {
         Contour contour = new();
 
-        contour.AddVertex(new Vertex(0D, 30D));
-        contour.AddVertex(new Vertex(0D, 20D));
+        contour.AddVertex(new Vertex(0D, UpperBodyTop));
+        contour.AddVertex(new Vertex(0D, UpperBodyBottom));
 
         // Walk the toothed edge from left to right so the ring stays counter clockwise.
         for (int i = 0; i < teeth; i++)
@@ -109,14 +123,14 @@ internal static class SyntheticPolygons
             double left = ((2D * i) + 1D) * step;
             double right = left + step;
 
-            contour.AddVertex(new Vertex(left, 20D));
-            contour.AddVertex(new Vertex(left, 5D));
-            contour.AddVertex(new Vertex(right, 5D));
-            contour.AddVertex(new Vertex(right, 20D));
+            contour.AddVertex(new Vertex(left, UpperBodyBottom));
+            contour.AddVertex(new Vertex(left, DownwardToothTip));
+            contour.AddVertex(new Vertex(right, DownwardToothTip));
+            contour.AddVertex(new Vertex(right, UpperBodyBottom));
         }
 
-        // The final tooth already ends at (width, 20), so only the right wall is left to add.
-        contour.AddVertex(new Vertex(width, 30D));
+        // The final tooth already ends at (width, UpperBodyBottom), so only the right wall is left.
+        contour.AddVertex(new Vertex(width, UpperBodyTop));
 
         return Close(contour);
     }
