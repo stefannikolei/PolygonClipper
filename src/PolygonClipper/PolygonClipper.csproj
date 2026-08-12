@@ -36,6 +36,7 @@
 
 <ItemGroup>
   <InternalsVisibleTo Include="PolygonClipper.Tests" />
+  <InternalsVisibleTo Include="PolygonClipper.Benchmarks" />
 </ItemGroup>
   
 </Project>
