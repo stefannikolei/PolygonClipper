@@ -55,8 +55,8 @@ internal readonly struct SegmentComparer : IComparer<SweepEvent>, IComparer
         }
 
         // Check if the segments are collinear by comparing their signed areas
-        double area1 = PolygonUtilities.SignedArea(perhapsInversedX.Point, perhapsInversedX.OtherPoint, perhapsInversedY.Point);
-        double area2 = PolygonUtilities.SignedArea(perhapsInversedX.Point, perhapsInversedX.OtherPoint, perhapsInversedY.OtherPoint);
+        double area1 = PolygonUtilities.SignedArea(perhapsInversedX.Point, perhapsInversedX.OtherEvent.Point, perhapsInversedY.Point);
+        double area2 = PolygonUtilities.SignedArea(perhapsInversedX.Point, perhapsInversedX.OtherEvent.Point, perhapsInversedY.OtherEvent.Point);
 
         if (area1 != 0 || area2 != 0)
         {
@@ -64,7 +64,7 @@ internal readonly struct SegmentComparer : IComparer<SweepEvent>, IComparer
             // If they share their left endpoint, use the right endpoint to sort
             if (perhapsInversedX.Point == perhapsInversedY.Point)
             {
-                return LessIf(perhapsInversedX.Below(perhapsInversedY.OtherPoint), inversed);
+                return LessIf(perhapsInversedX.Below(perhapsInversedY.OtherEvent.Point), inversed);
             }
 
             // Different left endpoints: use the y-coordinate to sort if x-coordinates are the same
@@ -87,8 +87,8 @@ internal readonly struct SegmentComparer : IComparer<SweepEvent>, IComparer
             }
 
             // Form segments from the events.
-            Segment seg0 = new(perhapsInversedX.Point, perhapsInversedX.OtherPoint);
-            Segment seg1 = new(perhapsInversedY.Point, perhapsInversedY.OtherPoint);
+            Segment seg0 = new(perhapsInversedX.Point, perhapsInversedX.OtherEvent.Point);
+            Segment seg1 = new(perhapsInversedY.Point, perhapsInversedY.OtherEvent.Point);
 
             // Call the provided intersection method.
             int interResult = PolygonUtilities.FindIntersection(seg0, seg1, out Vertex pi0, out Vertex _);
