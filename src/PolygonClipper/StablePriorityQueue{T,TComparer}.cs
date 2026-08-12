@@ -16,7 +16,7 @@ namespace PolygonClipper;
 /// <typeparam name="TComparer">The type of comparer used to determine the priority of the elements.</typeparam>
 [DebuggerDisplay("Count = {Count}")]
 internal sealed class StablePriorityQueue<T, TComparer>
-    where TComparer : IComparer<T>
+    where TComparer : struct, IComparer<T>
 {
     private readonly List<T> heap;
 
@@ -27,7 +27,7 @@ internal sealed class StablePriorityQueue<T, TComparer>
     /// <param name="capacity">The initial capacity of the priority queue.</param>
     public StablePriorityQueue(TComparer comparer, int capacity)
     {
-        this.Comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        this.Comparer = comparer;
         this.heap = new List<T>(capacity > 0 ? capacity : 16);
     }
 

@@ -1,9 +1,11 @@
 // Copyright (c) Six Labors.
 // Licensed under the Six Labors Split License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace PolygonClipper;
 
@@ -56,7 +58,7 @@ internal sealed class StatusLine
     /// <returns>The index where the event was inserted.</returns>
     public int Insert(SweepEvent e)
     {
-        int index = this.sortedEvents.BinarySearch(e, this.comparer);
+        int index = this.BinarySearch(CollectionsMarshal.AsSpan(this.sortedEvents), e);
         if (index < 0)
         {
             index = ~index; // Get the correct insertion point
@@ -111,6 +113,51 @@ internal sealed class StatusLine
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Searches the sorted events for the given event.
+    /// </summary>
+    /// <param name="events">The sorted events to search.</param>
+    /// <param name="value">The event to locate.</param>
+    /// <returns>
+    /// The index of the event if it is found; otherwise the bitwise complement of the index
+    /// at which it would be inserted.
+    /// </returns>
+    /// <remarks>
+    /// This mirrors the algorithm behind <see cref="List{T}.BinarySearch(T, IComparer{T})"/>
+    /// exactly, including which element is returned when several compare equal. It is spelled
+    /// out here only so the comparison is a direct call on the struct comparer rather than an
+    /// interface call the JIT cannot inline - <see cref="SegmentComparer"/> is expensive enough
+    /// that the call overhead is not the whole story, but it is measured O(log n) times per
+    /// insertion.
+    /// </remarks>
+    private int BinarySearch(ReadOnlySpan<SweepEvent> events, SweepEvent value)
+    {
+        int lo = 0;
+        int hi = events.Length - 1;
+
+        while (lo <= hi)
+        {
+            int i = lo + ((hi - lo) >> 1);
+            int order = this.comparer.Compare(events[i], value);
+
+            if (order == 0)
+            {
+                return i;
+            }
+
+            if (order < 0)
+            {
+                lo = i + 1;
+            }
+            else
+            {
+                hi = i - 1;
+            }
+        }
+
+        return ~lo;
     }
 
     private void Up(int index)

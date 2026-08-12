@@ -10,7 +10,13 @@ namespace PolygonClipper;
 /// <summary>
 /// Compares two <see cref="SweepEvent"/> instances for sorting in the event queue.
 /// </summary>
-internal sealed class SweepEventComparer : IComparer<SweepEvent>, IComparer
+/// <remarks>
+/// This is a struct so that generic callers constrained to <c>struct, IComparer&lt;T&gt;</c> get
+/// their own JIT instantiation, in which <see cref="Compare(SweepEvent, SweepEvent)"/> is a
+/// direct call that can be inlined. As a class it shared the <c>__Canon</c> instantiation and
+/// every comparison went through an interface call.
+/// </remarks>
+internal readonly struct SweepEventComparer : IComparer<SweepEvent>, IComparer
 {
     /// <inheritdoc/>
     public int Compare(SweepEvent? x, SweepEvent? y)

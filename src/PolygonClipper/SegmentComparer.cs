@@ -11,10 +11,14 @@ namespace PolygonClipper;
 /// <summary>
 /// Allows the comparison of segments for sorting.
 /// </summary>
-internal sealed class SegmentComparer : IComparer<SweepEvent>, IComparer
+/// <remarks>
+/// This is a struct for the same reason as <see cref="SweepEventComparer"/>: it lets the status
+/// line call <see cref="Compare(SweepEvent, SweepEvent)"/> directly instead of through an
+/// interface. That matters more here, because this comparer is the expensive one - two
+/// <c>SignedArea</c> evaluations and, in the straddling case, a full <c>FindIntersection</c>.
+/// </remarks>
+internal readonly struct SegmentComparer : IComparer<SweepEvent>, IComparer
 {
-    private readonly SweepEventComparer eventComparer = new();
-
     /// <inheritdoc/>
     public int Compare(SweepEvent? x, SweepEvent? y)
     {
