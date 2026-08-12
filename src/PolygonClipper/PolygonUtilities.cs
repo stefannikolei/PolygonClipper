@@ -2,7 +2,6 @@
 // Licensed under the Six Labors Split License.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace PolygonClipper;
@@ -38,7 +37,7 @@ internal static class PolygonUtilities
         pi0 = default;
         pi1 = default;
 
-        if (!TryGetIntersectionBoundingBox(seg0.Source, seg0.Target, seg1.Source, seg1.Target, out Box2? bbox))
+        if (!TryGetIntersectionBoundingBox(seg0.Source, seg0.Target, seg1.Source, seg1.Target, out Box2 bbox))
         {
             return 0;
         }
@@ -47,12 +46,12 @@ internal static class PolygonUtilities
 
         if (interResult == 1)
         {
-            pi0 = ConstrainToBoundingBox(pi0, bbox.Value);
+            pi0 = ConstrainToBoundingBox(pi0, bbox);
         }
         else if (interResult == 2)
         {
-            pi0 = ConstrainToBoundingBox(pi0, bbox.Value);
-            pi1 = ConstrainToBoundingBox(pi1, bbox.Value);
+            pi0 = ConstrainToBoundingBox(pi0, bbox);
+            pi1 = ConstrainToBoundingBox(pi1, bbox);
         }
 
         return interResult;
@@ -171,11 +170,18 @@ internal static class PolygonUtilities
     /// <param name="a2">The second point of the first segment.</param>
     /// <param name="b1">The first point of the second segment.</param>
     /// <param name="b2">The second point of the second segment.</param>
-    /// <param name="result">The intersection bounding box if one exists, otherwise null.</param>
+    /// <param name="result">
+    /// The intersection bounding box if one exists, otherwise the default value.
+    /// </param>
     /// <returns>
     /// <see langword="true"/> if the segments intersect; otherwise, <see langword="false"/>.
     /// </returns>
-    private static bool TryGetIntersectionBoundingBox(Vertex a1, Vertex a2, Vertex b1, Vertex b2, [NotNullWhen(true)] out Box2? result)
+    /// <remarks>
+    /// The box is returned as a plain <see cref="Box2"/> rather than a <see cref="Nullable{T}"/>
+    /// because this sits on the hottest path in the library: a nullable <see cref="Box2"/> is
+    /// forty bytes that get copied out and unwrapped again on every call.
+    /// </remarks>
+    private static bool TryGetIntersectionBoundingBox(Vertex a1, Vertex a2, Vertex b1, Vertex b2, out Box2 result)
     {
         Vertex minA = Vertex.Min(a1, a2);
         Vertex maxA = Vertex.Max(a1, a2);
@@ -191,7 +197,7 @@ internal static class PolygonUtilities
             return true;
         }
 
-        result = null;
+        result = default;
         return false;
     }
 
