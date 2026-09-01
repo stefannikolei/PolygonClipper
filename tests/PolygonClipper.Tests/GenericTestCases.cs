@@ -4,7 +4,6 @@
 using GeoJson;
 using GeoJson.Feature;
 using GeoJson.Geometry;
-using Xunit.Abstractions;
 using GeoPolygon = GeoJson.Geometry.Polygon;
 
 namespace SixLabors.PolygonClipper.Tests;
