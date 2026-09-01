@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <!--Used to hide test project from dotnet test-->
+        <IsTestProject>false</IsTestProject>
         <!-- Is disabled to avoid conflicts with the shared infrastructure -->
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
